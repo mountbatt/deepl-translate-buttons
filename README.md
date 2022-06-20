@@ -1,5 +1,7 @@
 # deepl-translate-buttons
-A tiny WordPress Plugin to implement DeepL-Translation into every admin input field or textarea. Editors have to register a free API Account at DeepL.
+A tiny WordPress Plugin to implement DeepL-Translation into every admin input field or textarea. 
+Its perfect to fasten the translation of ACF-Fields or other custom fields …
+Editors have to register a free API Account at [DeepL.com](https://www.deepl.com/en/pro-api).
 
 Settings:
 
