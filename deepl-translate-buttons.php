@@ -116,18 +116,18 @@ function dpl_register_settings() {
 add_action( 'admin_init', 'dpl_register_settings' );
 
 function dpl_plugin_section_text() {
-    echo '<p>Here you can set all the options for using the API</p>';
+    echo '<p>Here you can set all the options to use the API</p>';
 }
 
 function dpl_plugin_setting_api_key() {
     $options = get_option( 'deepl_translate_buttons_options' );
-    echo "<div class='no-deepl'><input id='dpl_plugin_setting_api_key' name='deepl_translate_buttons_options[api_key]' type='password' style='width: 50%;' value='" . esc_attr( $options['api_key'] ) . "' /><br><a href='https://www.deepl.com/en/pro-api' target='_blank'>Get a free API Key here</a></div>";
+    echo "<div class='no-deepl'><input id='dpl_plugin_setting_api_key' name='deepl_translate_buttons_options[api_key]' type='password' style='width: 50%;' value='" . esc_attr( $options['api_key'] ) . "' /><br><a href='https://www.deepl.com/en/pro-api' target='_blank'>Get a free or pro API Key here</a></div>";
 }
 
 function dpl_plugin_setting_api_url() {
     $options = get_option( 'deepl_translate_buttons_options' );
     $deepl_api_url = "https://api-free.deepl.com/v2/translate";
-    echo "<div class='no-deepl'><input id='dpl_plugin_setting_api_url' name='deepl_translate_buttons_options[api_url]' type='text' style='width: 50%;' value='" . esc_attr( $options['api_url'] ) . "' /></div><small> Free API: <code>".$deepl_api_url."</code></small>";
+    echo "<div class='no-deepl'><input id='dpl_plugin_setting_api_url' name='deepl_translate_buttons_options[api_url]' type='text' style='width: 50%;' value='" . esc_attr( $options['api_url'] ) . "' /></div><small> You can use the Free API URL with: <code>".$deepl_api_url."</code></small>";
 }
 
 function dpl_plugin_setting_base_lang() {
@@ -135,19 +135,19 @@ function dpl_plugin_setting_base_lang() {
     if(!$options['base_lang']){
       $options['base_lang'] = "en";
     }
-    echo "<div class='no-deepl'><input id='dpl_plugin_setting_api_key' name='deepl_translate_buttons_options[base_lang]' type='text' style='width: 50px' value='" . esc_attr( $options['base_lang'] ) . "' /><br><small>eg:<code>de</code></small></div>";
+    echo "<div class='no-deepl'><input id='dpl_plugin_setting_api_key' name='deepl_translate_buttons_options[base_lang]' type='text' style='width: 50px' value='" . esc_attr( $options['base_lang'] ) . "' /><br><small>eg:<code>en</code> (your base language)</small></div>";
 }
 
 function dpl_plugin_setting_used_lang() {
     $options = get_option( 'deepl_translate_buttons_options' );
     if(!$options['used_lang']){
-      $options['used_lang'] = "en";
+      $options['used_lang'] = "de, fr";
     }
-    echo "<div class='no-deepl'><input id='dpl_plugin_setting_api_key' name='deepl_translate_buttons_options[used_lang]' type='text' style='width: 150px' value='" . esc_attr( $options['used_lang'] ) . "' /><br><small>eg:<code>en, fr, es</code></small></div>";
+    echo "<div class='no-deepl'><input id='dpl_plugin_setting_api_key' name='deepl_translate_buttons_options[used_lang]' type='text' style='width: 150px' value='" . esc_attr( $options['used_lang'] ) . "' /><br><small>eg:<code>de, fr, es</code> (your additional languages)</small></div>";
 }
 
 function my_plugin_settings_link($links) { 
-  $settings_link = '<a href="options-general.php?page=deepl_translate_buttons">Settings</a>'; 
+  $settings_link = '<a href="options-general.php?page=deepl_translate_buttons">API Settings</a>'; 
   array_unshift($links, $settings_link); 
   return $links; 
 }
