@@ -3,6 +3,8 @@ A tiny WordPress Plugin to implement DeepL-Translation into every admin input fi
 Its perfect to fasten the translation of ACF-Fields or other custom fields …
 Editors have to register a free or pro API Account at [DeepL.com](https://www.deepl.com/en/pro-api).
 
+It also works on large classic editor posts and DeepLs AI will preserve code fragments too!
+
 Settings:
 You need the url to the API (free or pro) and your own API-Key:
 
