@@ -45,7 +45,7 @@ if( is_admin() ):
       }
       
       // remove again on some items … damn hack but ok
-      $('.no-deepl,.acf-oembed, .pll-translation-column, #acf-field_6244cbb6eaa90, .acf-color-picker').find('.do-translate').remove();
+      $('.no-deepl,.acf-oembed, .pll-translation-column, #acf-field_6244cbb6eaa90, .acf-color-picker, .acfe-field-code-editor').find('.do-translate').remove();
     
       $(document).on('click','.do-translate',function (e) {  
         e.preventDefault();
