@@ -2,7 +2,7 @@
 /*
 Plugin Name: DeepL Translate Buttons
 Description: Adds Translate-Buttons to every input or textarea (like Advanced Custom Fields etc.) to translate the text via DeepL API. You have to register for a free API Key at DeepL.com
-Version: 0.2
+Version: 0.3
 Author: Tobias Battenberg
 Author URI: https://www.buerobattenberg.de/
 */
@@ -77,6 +77,12 @@ if( is_admin() ):
       });
     });
     </script>
+    <style>
+      /* another dirty hack to hide it in acf flexible-content title edit field */
+      .acf-flexible-content .layout > .do-translate {
+        display: none !important;
+      }
+    </style>
     <?php
   }
   add_action('admin_footer', 'deepl_buttons_js');
