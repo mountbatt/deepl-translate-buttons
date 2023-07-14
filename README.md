@@ -5,6 +5,8 @@ Editors have to register a free or pro API Account at [DeepL.com](https://www.de
 
 It also works on large classic editor posts and DeepLs AI will preserve code fragments too!
 
+Additionally you can create automatic ALT-Tags with AI via astica API. The results get translated via DeepL and attached to the uploaded images.
+
 Settings:
 You need the url to the API (free or pro) and your own API-Key:
 
