@@ -19,4 +19,5 @@ Then you get a tiny button after every input field in WordPress. See it in actio
 ![deepl-buttons-demo-2](https://user-images.githubusercontent.com/2411246/174667463-ffecf041-33e3-435c-a1b1-1dd6a65ab924.png)
 
 ## Auto Image Captions / ALT Tags in the current language
+You can click a button and the image gets checked by AI on its content and a nice description gets generated and added to the "ALT-Tag" field. If you are working with polylang and have an DeepL API Key, the string also gets automatically translated.
 ![Bildschirmfoto 2023-07-14 um 22 00 51](https://github.com/mountbatt/deepl-translate-buttons/assets/2411246/982aa4bb-fb8c-4220-9dce-619a4e3a004e)
