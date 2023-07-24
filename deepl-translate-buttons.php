@@ -92,23 +92,37 @@ if( is_admin() ):
         }
         
         // detect attachment language with polylang:
+        var pllLangValue = $('.media_lang_choice').val() ?? $('.post_lang_choice').val();
+        console.log(pllLangValue);
         
-        // Hole das Klassenattribut des Body-Elements
-        var bodyClass = $("body").attr("class");
+        if(pllLangValue == "") {
         
-        // Suche nach dem Muster "pll-lang-" gefolgt von einem beliebigen Zeichen
-        var regex = /pll-lang-(\w+)/;
-        
-        // Führe die Suche mit dem regulären Ausdruck durch
-        var match = regex.exec(bodyClass);
-        
-        // Überprüfe, ob ein Treffer gefunden wurde
-        if (match && match.length > 1) {
-          // Der Wert von pll-lang-* befindet sich im zweiten Element des Treffers (Index 1)
-          var pllLangValue = match[1];
-          console.log(pllLangValue);
-        } else {
-          console.log("Kein Wert für pll-lang-* gefunden.");
+          // Hole das Klassenattribut des Body-Elements
+          var bodyClass = $("body").attr("class");
+          
+          // Suche nach dem Muster "pll-lang-" gefolgt von einem beliebigen Zeichen
+          var regex = /pll-lang-(\w+)/;
+          
+          // Führe die Suche mit dem regulären Ausdruck durch
+          var match = regex.exec(bodyClass);
+          
+          // Überprüfe, ob ein Treffer gefunden wurde
+          if (match && match.length > 1) {
+            // Der Wert von pll-lang-* befindet sich im zweiten Element des Treffers (Index 1)
+            var pllLangValue = match[1];
+            console.log(pllLangValue);
+          } else {
+            console.log("Kein Wert für pll-lang-* gefunden.");
+            
+            // Suche nach dem Muster "pll-lang-" gefolgt von einem beliebigen Zeichen
+            var regex = /locale-(\w+)/;
+            
+            // Führe die Suche mit dem regulären Ausdruck durch
+            var match = regex.exec(bodyClass);
+            var pllLangValue = match[1];
+            console.log(pllLangValue);
+          }
+          
         }
         
         
