@@ -2,7 +2,7 @@
 /*
 Plugin Name: DeepL Translate Buttons
 Description: Adds Translate-Buttons to every input or textarea (like Advanced Custom Fields etc.) to translate the text via DeepL API. You have to register for a free API Key at DeepL.com. Additionally you can create automatic ALT-Tags with AI via astica API.
-Version: 0.4
+Version: 0.5
 Author: Tobias Battenberg
 Author URI: https://www.buerobattenberg.de/
 */
@@ -51,7 +51,7 @@ if( is_admin() ):
       }
       
       // remove again on some items … damn hack but ok
-      $('.no-deepl,.acf-oembed, .pll-translation-column, #pageparentdiv, #acf-field_6244cbb6eaa90, .acf-color-picker, .acfe-field-code-editor, .misc-pub-attachment').find('.do-translate').remove();
+      $('.no-deepl, .acf-oembed, .pll-translation-column, #pageparentdiv, #acf-field_6244cbb6eaa90, .acf-color-picker, .acfe-field-code-editor, .misc-pub-attachment, .gfield, .gforms_edit_form').find('.do-translate').remove();
       
       
     
