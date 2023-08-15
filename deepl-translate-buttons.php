@@ -12,7 +12,6 @@ if( is_admin() ):
   function deepl_buttons_js() {
     $options = get_option( 'deepl_translate_buttons_options' );
     ?>
-    
     <script>
     jQuery(document).ready(function($) {
       
@@ -332,6 +331,4 @@ function my_plugin_settings_link($links) {
 $plugin = plugin_basename(__FILE__); 
 add_filter("plugin_action_links_$plugin", 'my_plugin_settings_link' );
 
-
 ?>
-
