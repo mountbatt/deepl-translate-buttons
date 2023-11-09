@@ -2,7 +2,7 @@
 /*
 Plugin Name: DeepL Translate Buttons
 Description: Adds Translate-Buttons to every input or textarea (like Advanced Custom Fields etc.) to translate the text via DeepL API. You have to register for a free API Key at DeepL.com. Additionally you can create automatic ALT-Tags with AI via astica API.
-Version: 0.5
+Version: 0.6
 Author: Tobias Battenberg
 Author URI: https://www.buerobattenberg.de/
 */
@@ -15,6 +15,7 @@ if( is_admin() ):
     <script>
     jQuery(document).ready(function($) {
       
+      <?php if($options["show_buttons"] != ""): ?>
       // polylang alert on duplicate
       /*
       jQuery('.post-type-news .pll_icon_add, .post-type-newsletter .pll_icon_add, .post-type-blog .pll_icon_add').on('click', function (e) {
@@ -83,6 +84,10 @@ if( is_admin() ):
         });
       });
       
+      <?php endif; ?>
+      
+      <?php if($options["imageseo_api_key"] != ""): ?>
+      
       $(document).on('click','.get-ai-description',function (e) {  
         e.preventDefault();
         var attachment_url = $("#attachment_url").val();
@@ -92,10 +97,15 @@ if( is_admin() ):
         
         // detect attachment language with polylang:
         var pllLangValue = $('.media_lang_choice').val() ?? $('.post_lang_choice').val();
-        console.log(pllLangValue);
+        console.log("Erkannte Sprache via Polylang: " + pllLangValue);
         
+        // get it from html tag:
+        var pllLangValue = $('html').attr('lang').split('-')[0];
+        console.log("Erkannte Sprache via HTML Tag: " + pllLangValue);
+        
+        // wenn das immer noch scheitert:
         if(pllLangValue == "") {
-        
+
           // Hole das Klassenattribut des Body-Elements
           var bodyClass = $("body").attr("class");
           
@@ -182,7 +192,7 @@ if( is_admin() ):
             }
         });
 
-        
+        <?php endif; ?>
 
       });
 
@@ -228,6 +238,8 @@ function dpl_register_settings() {
     register_setting( 'deepl_translate_buttons_options', 'deepl_translate_buttons_options', 'deepl_translate_buttons_options_validate' );
     add_settings_section( 'api_settings', 'API Settings', 'dpl_plugin_section_text', 'deepl_translate_buttons' );
 
+    add_settings_field( 'dpl_plugin_setting_show_buttons', 'DeepL Buttons anzeigen?', 'dpl_plugin_setting_show_buttons', 'deepl_translate_buttons', 'api_settings' );
+
     add_settings_field( 'dpl_plugin_setting_api_url', 'DeepL API URL', 'dpl_plugin_setting_api_url', 'deepl_translate_buttons', 'api_settings' );
     add_settings_field( 'dpl_plugin_setting_api_key', 'DeepL API Key', 'dpl_plugin_setting_api_key', 'deepl_translate_buttons', 'api_settings' );
     add_settings_field( 'dpl_plugin_setting_base_lang', 'Base Language', 'dpl_plugin_setting_base_lang', 'deepl_translate_buttons', 'api_settings' );
@@ -239,6 +251,12 @@ add_action( 'admin_init', 'dpl_register_settings' );
 
 function dpl_plugin_section_text() {
     echo '<p>Here you can set all the options to use the API</p>';
+}
+
+function dpl_plugin_setting_show_buttons() {
+    $options = get_option( 'deepl_translate_buttons_options' );
+    $checked = isset($options['show_buttons']) ? $options['show_buttons'] : 0;
+    echo "<div class='no-deepl'><input id='dpl_plugin_setting_show_buttons' name='deepl_translate_buttons_options[show_buttons]' type='checkbox' value='1' " . checked(1, $checked, false) . " /></div>";
 }
 
 function dpl_plugin_setting_api_key() {
@@ -271,7 +289,7 @@ function dpl_plugin_setting_used_lang() {
 // ImageSEO:
 function dpl_plugin_setting_imageseo_apikey() {
     $options = get_option( 'deepl_translate_buttons_options' );
-    echo "<div class='no-deepl'><input id='dpl_plugin_setting_imageseo_apikey' name='deepl_translate_buttons_options[imageseo_api_key]' type='password' style='width: 50%;' value='" . esc_attr( $options['imageseo_api_key'] ) . "' /><br><small>Enter your API Key to get AI based image descriptions<br><a href='https://www.astica.org/api-keys/' target='_blank'>Get an API Key here</a></small></div>";
+    echo "<div class='no-deepl'><input id='dpl_plugin_setting_imageseo_apikey' name='deepl_translate_buttons_options[imageseo_api_key]' type='password' style='width: 50%;' value='" . esc_attr( $options['imageseo_api_key'] ) . "' /><br><small>Enter your API Key to get AI based image descriptions<br>You need DeepL to get translated results!<br><a href='https://www.astica.org/api-keys/' target='_blank'>Get an API Key here</a></small></div>";
 }
 
 if( is_admin() && get_option("deepl_translate_buttons_options")["imageseo_api_key"] ) {
