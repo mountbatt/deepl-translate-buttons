@@ -15,7 +15,7 @@ if( is_admin() ):
     <script>
     jQuery(document).ready(function($) {
       
-      <?php if($options["show_buttons"] != ""): ?>
+      <?php if(isset($options["show_buttons"]) && !empty($options["show_buttons"])): ?>
       // polylang alert on duplicate
       /*
       jQuery('.post-type-news .pll_icon_add, .post-type-newsletter .pll_icon_add, .post-type-blog .pll_icon_add').on('click', function (e) {
