@@ -1,352 +1,172 @@
 <?php
 /*
 Plugin Name: DeepL Translate Buttons
-Description: Adds Translate-Buttons to every input or textarea (like Advanced Custom Fields etc.) to translate the text via DeepL API. You have to register for a free API Key at DeepL.com. Additionally you can create automatic ALT-Tags with AI via astica API.
-Version: 0.6
+Description: Adds translate buttons to input and textarea fields in the WordPress admin. Translations are handled via DeepL API using secure AJAX – no CORS problems.
+Version: 0.7
 Author: Tobias Battenberg
-Author URI: https://www.buerobattenberg.de/
 */
-defined( 'ABSPATH' ) or die( 'Are you ok?' );
 
-if( is_admin() ):
-  function deepl_buttons_js() {
-    $options = get_option( 'deepl_translate_buttons_options' );
-    ?>
-    <script>
-    jQuery(document).ready(function($) {
-      
-      <?php if(isset($options["show_buttons"]) && !empty($options["show_buttons"])): ?>
-      // polylang alert on duplicate
-      /*
-      jQuery('.post-type-news .pll_icon_add, .post-type-newsletter .pll_icon_add, .post-type-blog .pll_icon_add').on('click', function (e) {
-        if (confirm('Wurden die ALT- und Captions-Tags der Bilder schon im Media Manager übersetzt?')) {
-          // Run it!
-          return true;
-        } else {
-          // Do nothing!
-          e.preventDefault();
-          return false;
-        }
-      });
-      */
-      
-      if( !$('body').hasClass('edit-php')){ // if we are NOT on an admin-list page to avoid it in quick-edit fields
-        <?php if($options['api_key']): ?>
-          var base_lang = "<?php echo esc_attr( substr($options['base_lang'], 0, 2)); ?>";
-          var used_langs = "<?php echo esc_attr( $options['used_lang'] ); ?>";
-          used_langs = used_langs.replace(/\s+/g, '');
-          var langs_arr = used_langs.split(","); // this returns an array
-          langs_arr.reverse();
-          jQuery.each(langs_arr, function(index, val) {
-              console.log(index, val)
-              jQuery('<a href="#" title="Translate with DeepL" class="do-translate button button-secondary" data-lang="'+val+'" data-count="'+index+'" data-type="textarea" style="text-transform: uppercase; margin: 10px; margin-right: 0; font-size: 10px; min-height: 23px; max-height:23px;">'+base_lang+' &rarr; '+val+'</a>').insertAfter('textarea');
-              jQuery('<a href="#" title="Translate with DeepL" class="do-translate button button-secondary" data-lang="'+val+'" data-count="'+index+'" data-type="input" style="text-transform: uppercase; margin-top: 8px; margin-right: 10px; font-size: 10px; min-height: 23px; max-height:23px;">'+base_lang+' &rarr; '+val+'</a>').insertAfter('input[type=text]');
-              
-              /*
-              jQuery('<a href="#" title="ImageSEO" class="do-imageseo button button-secondary" data-lang="'+base_lang+'" data-count="'+index+'" data-type="input" style="text-transform: uppercase; margin-top: 8px; margin-right: 10px; font-size: 10px; min-height: 23px; max-height:23px;">&rarr; AI Description</a>').insertAfter('#attachment_alt');
-              */
-              
-          });
-        <?php endif;?>
-      }
-      
-      // remove again on some items … damn hack but ok
-      $('.no-deepl, .acf-oembed, .pll-translation-column, #pageparentdiv, #acf-field_6244cbb6eaa90, .acf-color-picker, .acfe-field-code-editor, .misc-pub-attachment, .gfield, .gforms_edit_form').find('.do-translate').remove();
-      
-      
-    
-      $(document).on('click','.do-translate',function (e) {  
-        e.preventDefault();
-        var language = $(this).data('lang');
-        //var count = $(this).data('count');
-        var type = $(this).data('type');
-        $(this).parent().parent().find('.switch-html').trigger("click");
-        var target = $(this).prevAll(type).eq(0); 
-        var source_value_text = target.val();
-        var language = $(this).data('lang');
-        $.post("<?php echo esc_attr( $options['api_url'] ); ?>",
-        {
-          auth_key: "<?php echo esc_attr( $options['api_key'] ); ?>",
-          text: source_value_text,
-          target_lang: language,
-          source_lang: "<?php echo esc_attr( substr($options['base_lang'], 0, 2)); ?>",
-          preserve_formatting: 1,
-          split_sentences: 1,
-        },
-        function(data, status){
-          console.log(data, status)
-          if(status == "success"){
-            $(target).val(data.translations[0].text).focus();
-          } else {
-            //alert('DeepL Translation Error.');
-            console.log(data, status)
-          }
+defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
+
+// === Admin JavaScript ===
+if ( is_admin() ):
+
+function deepl_buttons_js() {
+  $options = get_option( 'deepl_translate_buttons_options' );
+  ?>
+  <script>
+  jQuery(document).ready(function($) {
+    if( !$('body').hasClass('edit-php')) {
+      <?php if( !empty($options['api_key']) ): ?>
+        var base_lang = "<?php echo esc_attr( substr($options['base_lang'], 0, 2)); ?>";
+        var used_langs = "<?php echo esc_attr( $options['used_lang'] ); ?>";
+        var langs_arr = used_langs.replace(/\s+/g, '').split(",").reverse();
+
+        $.each(langs_arr, function(index, val) {
+          $('<a href="#" style="text-transform: uppercase; margin-top: 8px; margin-right: 10px; font-size: 10px; min-height: 23px; max-height:23px;" class="do-translate button button-secondary" data-lang="'+val+'" data-type="textarea">'+base_lang+' → '+val+'</a>').insertAfter('textarea');
+          $('<a href="#" style="text-transform: uppercase; margin-top: 8px; margin-right: 10px; font-size: 10px; min-height: 23px; max-height:23px;" class="do-translate button button-secondary" data-lang="'+val+'" data-type="input">'+base_lang+' → '+val+'</a>').insertAfter('input[type=text]');
         });
-      });
-      
       <?php endif; ?>
-      
-      <?php if($options["imageseo_api_key"] != ""): ?>
-      
-      $(document).on('click','.get-ai-description',function (e) {  
-        e.preventDefault();
-        var attachment_url = $("#attachment_url").val();
-        if(!attachment_url){
-          attachment_url = $("#attachment-details-copy-link").val();
+    }
+
+    $(document).on('click','.do-translate',function (e) {
+      e.preventDefault();
+      var language = $(this).data('lang');
+      var type = $(this).data('type');
+      $(this).parent().parent().find('.switch-html').trigger("click");
+      var target = $(this).prevAll(type).eq(0);
+      var source_value = target.val();
+
+      $.post(ajaxurl, {
+        action: "deepl_translate",
+        text: source_value,
+        target_lang: language,
+        source_lang: "<?php echo esc_attr( substr($options['base_lang'], 0, 2)); ?>"
+      }, function(response) {
+        if(response.success){
+          target.val(response.data.translations[0].text).focus();
+        } else {
+          console.log("DeepL Error:", response.data);
         }
-        
-        // detect attachment language with polylang:
-        var pllLangValue = $('.media_lang_choice').val() ?? $('.post_lang_choice').val();
-        console.log("Erkannte Sprache via Polylang: " + pllLangValue);
-        
-        // get it from html tag:
-        var pllLangValue = $('html').attr('lang').split('-')[0];
-        console.log("Erkannte Sprache via HTML Tag: " + pllLangValue);
-        
-        // wenn das immer noch scheitert:
-        if(pllLangValue == "") {
-
-          // Hole das Klassenattribut des Body-Elements
-          var bodyClass = $("body").attr("class");
-          
-          // Suche nach dem Muster "pll-lang-" gefolgt von einem beliebigen Zeichen
-          var regex = /pll-lang-(\w+)/;
-          
-          // Führe die Suche mit dem regulären Ausdruck durch
-          var match = regex.exec(bodyClass);
-          
-          // Überprüfe, ob ein Treffer gefunden wurde
-          if (match && match.length > 1) {
-            // Der Wert von pll-lang-* befindet sich im zweiten Element des Treffers (Index 1)
-            var pllLangValue = match[1];
-            console.log(pllLangValue);
-          } else {
-            console.log("Kein Wert für pll-lang-* gefunden.");
-            
-            // Suche nach dem Muster "pll-lang-" gefolgt von einem beliebigen Zeichen
-            var regex = /locale-(\w+)/;
-            
-            // Führe die Suche mit dem regulären Ausdruck durch
-            var match = regex.exec(bodyClass);
-            var pllLangValue = match[1];
-            console.log(pllLangValue);
-          }
-          
-        }
-        
-        
-        
-        var requestData = {
-            tkn: "<?php echo esc_attr( $options['imageseo_api_key'] ); ?>",
-            modelVersion: '2.1_full',
-            input: attachment_url,
-            visionParams: "describe"
-        };
-        $.ajax({
-            url: "https://vision.astica.ai/describe",
-            type: "POST",
-            data: JSON.stringify(requestData),
-          contentType : "application/json", 
-          dataType : "json",
-            success: async function (data) {
-                console.log(data);
-                var result = data.caption.text;
-                
-                // translate if we need the string NOT in english:
-                if(pllLangValue && pllLangValue != "en") {
-                 
-                 // deepl:
-                 $.post("<?php echo esc_attr( $options['api_url'] ); ?>",
-                 {
-                   auth_key: "<?php echo esc_attr( $options['api_key'] ); ?>",
-                   text: result,
-                   target_lang: pllLangValue,
-                   source_lang: "en",
-                   preserve_formatting: 1,
-                   split_sentences: 1,
-                 },
-                 function(data2, status){
-                   console.log(data2, status)
-                   if(status == "success"){
-                     result = data2.translations[0].text;
-                     result = result.charAt(0).toUpperCase() + result.slice(1);
-                     $('#attachment_alt, #attachment-details-alt-text').val(result).focus()
-                   } else {
-                     //alert('DeepL Translation Error.');
-                     console.log(data2, status)
-                   }
-                 });
-                 
-                 
-                 
-                } else {
-                  result = result.charAt(0).toUpperCase() + result.slice(1);
-                  $('#attachment_alt, #attachment-details-alt-text').val(result).focus()
-                }
-            },
-            error: function (xhr, data, status) {
-               console.log(data);
-               console.log(status);
-               console.log(xhr); //statusText
-               
-            }
-        });
-
-        <?php endif; ?>
-
       });
-
     });
+  });
+  </script>
+  <style>
+    .acf-flexible-content .layout > .do-translate {
+      display: none !important;
+    }
+    .do-translate {
+      margin: 10px 10px 0 0;
+      font-size: 10px;
+      min-height: 23px;
+      max-height: 23px;
+      text-transform: uppercase;
+    }
+    .no-deepl + .do-translate, .acf-oembed + .do-translate, .pll-translation-column + .do-translate, #pageparentdiv ~ .do-translate, #acf-field_6244cbb6eaa90 + .do-translate, .acf-color-picker + .do-translate, .acfe-field-code-editor + .do-translate, .misc-pub-attachment + .do-translate, .gfield ~ .do-translate, .gforms_edit_form ~ .do-translate, #menu_order + .do-translate, #shorturl-keyword + .do-translate {
+      display: none !important;
+    }
+  </style>
+  <?php
+}
+add_action('admin_footer', 'deepl_buttons_js');
 
-    </script>
-
-    
-    <style>
-      /* another dirty hack to hide it in acf flexible-content title edit field */
-      .acf-flexible-content .layout > .do-translate {
-        display: none !important;
-      }
-    </style>
-    <?php
-  }
-  add_action('admin_footer', 'deepl_buttons_js');
 endif;
 
-
-
-
-// OPTIONS PAGE
+// === Plugin Settings Page ===
 
 function dpl_add_settings_page() {
-    add_options_page( 'DeepL Translate Buttons Settings', 'DeepL Translate Buttons', 'manage_options', 'deepl_translate_buttons', 'dpl_render_plugin_settings_page' );
+    add_options_page('DeepL Translate Buttons Settings', 'DeepL Translate Buttons', 'manage_options', 'deepl_translate_buttons', 'dpl_render_plugin_settings_page');
 }
-add_action( 'admin_menu', 'dpl_add_settings_page' );
+add_action('admin_menu', 'dpl_add_settings_page');
 
 function dpl_render_plugin_settings_page() {
     ?>
-    <h2>DeepL Translate Buttons – Settings</h2>
-    <form action="options.php" method="post">
-        <?php 
-        settings_fields( 'deepl_translate_buttons_options' );
-        do_settings_sections( 'deepl_translate_buttons' ); ?>
-        <input name="submit" class="button button-primary" type="submit" value="<?php esc_attr_e( 'Save' ); ?>" />
-    </form>
+    <div class="wrap">
+        <h2>DeepL Translate Buttons – Settings</h2>
+        <form action="options.php" method="post">
+            <?php 
+            settings_fields('deepl_translate_buttons_options');
+            do_settings_sections('deepl_translate_buttons');
+            submit_button();
+            ?>
+        </form>
+    </div>
     <?php
 }
 
 function dpl_register_settings() {
-    register_setting( 'deepl_translate_buttons_options', 'deepl_translate_buttons_options', 'deepl_translate_buttons_options_validate' );
-    add_settings_section( 'api_settings', 'API Settings', 'dpl_plugin_section_text', 'deepl_translate_buttons' );
+    register_setting('deepl_translate_buttons_options', 'deepl_translate_buttons_options');
+    add_settings_section('api_settings', 'API Settings', null, 'deepl_translate_buttons');
 
-    add_settings_field( 'dpl_plugin_setting_show_buttons', 'DeepL Buttons anzeigen?', 'dpl_plugin_setting_show_buttons', 'deepl_translate_buttons', 'api_settings' );
+    add_settings_field('api_url', 'DeepL API URL', function() {
+        $options = get_option('deepl_translate_buttons_options');
+        $value = !empty($options['api_url']) ? $options['api_url'] : 'https://api-free.deepl.com/v2/translate';
+        echo "<input name='deepl_translate_buttons_options[api_url]' class='no-deepl' type='text' style='width: 50%;' value='" . esc_attr($value) . "' />";
+    }, 'deepl_translate_buttons', 'api_settings');
 
-    add_settings_field( 'dpl_plugin_setting_api_url', 'DeepL API URL', 'dpl_plugin_setting_api_url', 'deepl_translate_buttons', 'api_settings' );
-    add_settings_field( 'dpl_plugin_setting_api_key', 'DeepL API Key', 'dpl_plugin_setting_api_key', 'deepl_translate_buttons', 'api_settings' );
-    add_settings_field( 'dpl_plugin_setting_base_lang', 'Base Language', 'dpl_plugin_setting_base_lang', 'deepl_translate_buttons', 'api_settings' );
-    add_settings_field( 'dpl_plugin_setting_used_lang', 'Use these Languages', 'dpl_plugin_setting_used_lang', 'deepl_translate_buttons', 'api_settings' );
-    // ImageSEO:
-    add_settings_field( 'dpl_plugin_setting_imageseo_apikey', 'Image SEO Api Key', 'dpl_plugin_setting_imageseo_apikey', 'deepl_translate_buttons', 'api_settings' );
+    add_settings_field('api_key', 'DeepL API Key', function() {
+        $options = get_option('deepl_translate_buttons_options');
+        echo "<input name='deepl_translate_buttons_options[api_key]' class='no-deepl' type='password' style='width: 50%;' value='" . esc_attr($options['api_key']) . "' />";
+    }, 'deepl_translate_buttons', 'api_settings');
+
+    add_settings_field('base_lang', 'Base Language', function() {
+        $options = get_option('deepl_translate_buttons_options');
+        $val = !empty($options['base_lang']) ? $options['base_lang'] : 'en';
+        echo "<input name='deepl_translate_buttons_options[base_lang]' class='no-deepl' type='text' style='width: 50px;' value='" . esc_attr($val) . "' />";
+    }, 'deepl_translate_buttons', 'api_settings');
+
+    add_settings_field('used_lang', 'Use these Languages', function() {
+        $options = get_option('deepl_translate_buttons_options');
+        $val = !empty($options['used_lang']) ? $options['used_lang'] : 'de, fr';
+        echo "<input name='deepl_translate_buttons_options[used_lang]' class='no-deepl' type='text' style='width: 150px;' value='" . esc_attr($val) . "' />";
+    }, 'deepl_translate_buttons', 'api_settings');
 }
-add_action( 'admin_init', 'dpl_register_settings' );
+add_action('admin_init', 'dpl_register_settings');
 
-function dpl_plugin_section_text() {
-    echo '<p>Here you can set all the options to use the API</p>';
-}
+// === AJAX Handler ===
 
-function dpl_plugin_setting_show_buttons() {
-    $options = get_option( 'deepl_translate_buttons_options' );
-    $checked = isset($options['show_buttons']) ? $options['show_buttons'] : 0;
-    echo "<div class='no-deepl'><input id='dpl_plugin_setting_show_buttons' name='deepl_translate_buttons_options[show_buttons]' type='checkbox' value='1' " . checked(1, $checked, false) . " /></div>";
-}
+add_action('wp_ajax_deepl_translate', 'deepl_ajax_translate');
 
-function dpl_plugin_setting_api_key() {
-    $options = get_option( 'deepl_translate_buttons_options' );
-    echo "<div class='no-deepl'><input id='dpl_plugin_setting_api_key' name='deepl_translate_buttons_options[api_key]' type='password' style='width: 50%;' value='" . esc_attr( $options['api_key'] ) . "' /><br><small><a href='https://www.deepl.com/en/pro-api' target='_blank'>Get a free or pro API Key here</a></small></div>";
-}
-
-function dpl_plugin_setting_api_url() {
-    $options = get_option( 'deepl_translate_buttons_options' );
-    $deepl_api_url = "https://api-free.deepl.com/v2/translate";
-    echo "<div class='no-deepl'><input id='dpl_plugin_setting_api_url' name='deepl_translate_buttons_options[api_url]' type='text' style='width: 50%;' value='" . esc_attr( $options['api_url'] ) . "' /></div><small> You can use the Free API URL with: <code>".$deepl_api_url."</code></small>";
-}
-
-function dpl_plugin_setting_base_lang() {
-    $options = get_option( 'deepl_translate_buttons_options' );
-    if(!$options['base_lang']){
-      $options['base_lang'] = "en";
-    }
-    echo "<div class='no-deepl'><input id='dpl_plugin_setting_base_lang' name='deepl_translate_buttons_options[base_lang]' type='text' style='width: 50px' value='" . esc_attr( $options['base_lang'] ) . "' /><br><small>eg:<code>en</code> (your base language)</small></div>";
-}
-
-function dpl_plugin_setting_used_lang() {
-    $options = get_option( 'deepl_translate_buttons_options' );
-    if(!$options['used_lang']){
-      $options['used_lang'] = "de, fr";
-    }
-    echo "<div class='no-deepl'><input id='dpl_plugin_setting_used_lang' name='deepl_translate_buttons_options[used_lang]' type='text' style='width: 150px' value='" . esc_attr( $options['used_lang'] ) . "' /><br><small>eg:<code>de, fr, es</code> (your additional languages)</small></div>";
-}
-
-// ImageSEO:
-function dpl_plugin_setting_imageseo_apikey() {
-    $options = get_option( 'deepl_translate_buttons_options' );
-    echo "<div class='no-deepl'><input id='dpl_plugin_setting_imageseo_apikey' name='deepl_translate_buttons_options[imageseo_api_key]' type='password' style='width: 50%;' value='" . esc_attr( $options['imageseo_api_key'] ) . "' /><br><small>Enter your API Key to get AI based image descriptions<br>You need DeepL to get translated results!<br><a href='https://www.astica.org/api-keys/' target='_blank'>Get an API Key here</a></small></div>";
-}
-
-if( is_admin() && get_option("deepl_translate_buttons_options")["imageseo_api_key"] ) {
-  
-  function add_button_to_attachment_screen($form_fields, $post) {
-      $screen = null;
-      if (function_exists('get_current_screen'))
-      {
-        $screen = get_current_screen();
-      
-        if(! is_null($screen) && $screen->id == 'attachment') // hide on edit attachment screen.
-          return $form_fields;
-      }
-      
-      $url = admin_url('upload.php');
-      $url = add_query_arg('item', $post->ID, $url);
-      
-      $editurl = "#";
-      
-      $link = "href=\"$editurl\"";
-      $form_fields["imageseo-ai-description"] = array(
-              "label" => esc_html__("Autom. ALT-Tag", "imageseo-ai"),
-              "input" => "html",
-              "html" => "<a class='button-secondary get-ai-description' $link>" . esc_html__("&rarr; Get it now", "imageseo-ai") . "</a>"
-            );
-      
-      return $form_fields;
-  }
-  add_filter('attachment_fields_to_edit', 'add_button_to_attachment_screen', 11, 2);
-  
-  
-  function add_attachment_meta_box() {
-      add_meta_box(
-          'custom_attachment_meta_box',
-          'Autom. ALT-Tag',
-          'render_attachment_meta_box',
-          'attachment',
-          'side',
-          'low'
-      );
-  }
-  add_action('add_meta_boxes', 'add_attachment_meta_box');
-  
-  function render_attachment_meta_box($post) {
-      // Hier kannst du den Inhalt deiner Meta Box rendern
-      echo "<p>Mit einem Klick wird der Alt-Tag via »KI« erkannt, übersetzt und eingefügt.</p>";
-      echo "<a class='button-secondary get-ai-description' href='#'>" . esc_html__("&rarr; Get it now", "wordpress") . "</a>";
+function deepl_ajax_translate() {
+  if ( ! current_user_can('edit_posts') ) {
+    wp_send_json_error('Unauthorized');
   }
 
+  $options = get_option('deepl_translate_buttons_options');
+  $api_key = $options['api_key'];
+  $api_url = $options['api_url'];
+
+  $text = sanitize_text_field($_POST['text']);
+  $source_lang = sanitize_text_field($_POST['source_lang']);
+  $target_lang = sanitize_text_field($_POST['target_lang']);
+
+  $response = wp_remote_post($api_url, [
+    'body' => [
+      'auth_key' => $api_key,
+      'text' => $text,
+      'target_lang' => $target_lang,
+      'source_lang' => $source_lang,
+      'preserve_formatting' => 1,
+      'split_sentences' => 1,
+    ],
+  ]);
+
+  if ( is_wp_error($response) ) {
+    wp_send_json_error($response->get_error_message());
+  }
+
+  $body = wp_remote_retrieve_body($response);
+  wp_send_json_success(json_decode($body, true));
 }
 
-function my_plugin_settings_link($links) { 
-  $settings_link = '<a href="options-general.php?page=deepl_translate_buttons">API Settings</a>'; 
-  array_unshift($links, $settings_link); 
-  return $links; 
+// === Settings-Link in Pluginliste ===
+function dpl_plugin_settings_link($links) {
+  $settings_link = '<a href="options-general.php?page=deepl_translate_buttons">API Settings</a>';
+  array_unshift($links, $settings_link);
+  return $links;
 }
-$plugin = plugin_basename(__FILE__); 
-add_filter("plugin_action_links_$plugin", 'my_plugin_settings_link' );
+$plugin = plugin_basename(__FILE__);
+add_filter("plugin_action_links_$plugin", 'dpl_plugin_settings_link');
 
 ?>
