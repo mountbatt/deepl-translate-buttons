@@ -2,7 +2,7 @@
 /*
 Plugin Name: DeepL Translate Buttons
 Description: Adds translate buttons to input and textarea fields in the WordPress admin. Translations are handled via DeepL API using secure AJAX – no CORS problems.
-Version: 0.7
+Version: 0.8
 Author: Tobias Battenberg
 */
 
@@ -36,6 +36,7 @@ function deepl_buttons_js() {
       $(this).parent().parent().find('.switch-html').trigger("click");
       var target = $(this).prevAll(type).eq(0);
       var source_value = target.val();
+      //console.log(source_value);
 
       $.post(ajaxurl, {
         action: "deepl_translate",
@@ -45,6 +46,7 @@ function deepl_buttons_js() {
       }, function(response) {
         if(response.success){
           target.val(response.data.translations[0].text).focus();
+          console.log("DeepL Result:", response.data);
         } else {
           console.log("DeepL Error:", response.data);
         }
@@ -128,6 +130,51 @@ add_action('admin_init', 'dpl_register_settings');
 
 add_action('wp_ajax_deepl_translate', 'deepl_ajax_translate');
 
+
+function deepl_ajax_translate() {
+  if ( ! current_user_can('edit_posts') ) {
+    wp_send_json_error('Unauthorized');
+  }
+
+  $options = get_option('deepl_translate_buttons_options');
+  $api_key = $options['api_key'];
+  $api_url = $options['api_url'];
+
+  $text = wp_kses_post($_POST['text']); // Erlaubt sicheres HTML
+  $source_lang = sanitize_text_field($_POST['source_lang']);
+  $target_lang = sanitize_text_field($_POST['target_lang']);
+
+  $headers = [
+    'Authorization' => 'DeepL-Auth-Key ' . $api_key,
+    'Content-Type'  => 'application/x-www-form-urlencoded',
+  ];
+
+  $body = [
+    'text' => $text,
+    'target_lang' => $target_lang,
+    'source_lang' => $source_lang,
+    'tag_handling' => 'html', // Erhält HTML-Formatierung
+    'split_sentences' => 1,
+    'preserve_formatting' => '1', // deprecated?
+    'model_type' => 'prefer_quality_optimized'
+  ];
+
+  $response = wp_remote_post($api_url, [
+    'headers' => $headers,
+    'body' => $body,
+  ]);
+
+  if ( is_wp_error($response) ) {
+    wp_send_json_error($response->get_error_message());
+  }
+
+  $body = wp_remote_retrieve_body($response);
+  wp_send_json_success(json_decode($body, true));
+}
+
+
+/*
+ // Backup:
 function deepl_ajax_translate() {
   if ( ! current_user_can('edit_posts') ) {
     wp_send_json_error('Unauthorized');
@@ -144,11 +191,15 @@ function deepl_ajax_translate() {
   $response = wp_remote_post($api_url, [
     'body' => [
       'auth_key' => $api_key,
-      'text' => $text,
       'target_lang' => $target_lang,
       'source_lang' => $source_lang,
-      'preserve_formatting' => 1,
-      'split_sentences' => 1,
+      'tag_handling' => 'html',
+      //'show_billed_characters' => '1',
+      'preserve_formatting' => '1',
+      'split_sentences' => '1',
+      //'outline_detection' => '1',
+      //'model_type' => 'prefer_quality_optimized',
+      'text' => $text,
     ],
   ]);
 
@@ -159,6 +210,7 @@ function deepl_ajax_translate() {
   $body = wp_remote_retrieve_body($response);
   wp_send_json_success(json_decode($body, true));
 }
+*/
 
 // === Settings-Link in Pluginliste ===
 function dpl_plugin_settings_link($links) {
